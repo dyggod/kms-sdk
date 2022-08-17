@@ -6,6 +6,7 @@ specifiers:
   '@babel/preset-env': ^7.18.10
   '@rollup/plugin-babel': ^5.3.1
   '@rollup/plugin-commonjs': ^22.0.2
+  '@rollup/plugin-json': ^4.1.0
   '@rollup/plugin-node-resolve': ^13.3.0
   '@typescript-eslint/eslint-plugin': ^5.33.1
   '@typescript-eslint/parser': ^5.33.1
@@ -28,6 +29,7 @@ devDependencies:
   '@babel/preset-env': 7.18.10_@babel+core@7.18.10
   '@rollup/plugin-babel': 5.3.1_68056305c81369db65975962b052c091
   '@rollup/plugin-commonjs': 22.0.2_rollup@2.78.0
+  '@rollup/plugin-json': 4.1.0_rollup@2.78.0
   '@rollup/plugin-node-resolve': 13.3.0_rollup@2.78.0
   '@typescript-eslint/eslint-plugin': 5.33.1_ac9d23a22d787f7b7991fddcc31412d2
   '@typescript-eslint/parser': 5.33.1_eslint@8.22.0+typescript@4.7.4
@@ -1327,6 +1329,15 @@ packages:
       is-reference: 1.2.1
       magic-string: 0.25.9
       resolve: 1.22.1
+      rollup: 2.78.0
+    dev: true
+
+  /@rollup/plugin-json/4.1.0_rollup@2.78.0:
+    resolution: {integrity: sha512-yfLbTdNS6amI/2OpmbiBoW12vngr5NW2jCJVZSBEz+H5KfUJZ2M7sDjk0U6GOOdCWFVScShte29o9NezJ53TPw==}
+    peerDependencies:
+      rollup: ^1.20.0 || ^2.0.0
+    dependencies:
+      '@rollup/pluginutils': 3.1.0_rollup@2.78.0
       rollup: 2.78.0
     dev: true
 
