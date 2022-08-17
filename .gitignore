@@ -1,8 +1,5 @@
 # node_modules
 node_modules
 
-# 打包后的目录
-/dist
-
 # ts 编译后目录
 /src

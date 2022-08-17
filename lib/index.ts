@@ -78,11 +78,14 @@ class KmsClient {
   }
 
   // 公共方法：生成随机数
-  public async generateRandom() {
+  public async generateRandom(length: number, appId: string) {
     return this._request.send(
       ApiUrl.GenerateRandom,
       ApiMethod.Post,
-      this._addVersion({}),
+      this._addVersion({
+        keyLen: length,
+        appId,
+      }),
     );
   }
 }
