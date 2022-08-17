@@ -1,6 +1,26 @@
-// 非常简单的加法函数
-export function add(a: number, b: number) : number {
-  return a + b;
+interface KmsClientConfig {
+  endPoint: string;
+  accessKeyId: string;
+  accessKeySecret: string;
 }
 
-export default add;
+class KmsClient {
+  private _config: KmsClientConfig;
+
+  private _axios: any;
+
+  static add() {
+    console.log('add');
+  }
+
+  constructor(config: KmsClientConfig) {
+    this._config = config;
+    KmsClient.add();
+  }
+
+  get config(): any {
+    return this._config;
+  }
+}
+
+export default KmsClient;

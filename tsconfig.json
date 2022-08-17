@@ -3,8 +3,10 @@
     "target": "es5",
     "module": "commonjs",
     "declaration": true,
-    "outDir": "./dist",
-    "strict": true
+    "strict": true,
+    "declarationDir": "./dist/types", // 类型声明输出
+    "rootDir": "./lib",
+    "outDir": "./src" // 编译结果输出
   },
-  "exclude": ["dist/*"] /* 排除目录或文件 */
+  "exclude": ["dist/*", "src"] /* 排除目录或文件 */
 }
