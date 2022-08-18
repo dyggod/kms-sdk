@@ -13,10 +13,17 @@ export declare enum ApiMethod {
 interface Params {
     [key: string]: any;
 }
+interface InitConfig {
+    accessKeyId: string;
+    accessKeySecret: string;
+    credential?: string;
+}
 export declare class Request {
     private _endPoint;
-    constructor(endpoint: string);
+    private _authorization;
+    constructor(endpoint: string, config: InitConfig);
     get endPoint(): string;
+    static generateAuthorization(accessKeyId: string, accessKeySecret: string): string;
     send(apiurl: string, method: ApiMethod, params: Params, config?: any): Promise<import("axios").AxiosResponse<any, any>>;
 }
 export default Request;

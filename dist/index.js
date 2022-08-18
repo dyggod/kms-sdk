@@ -16940,11 +16940,35 @@
 	    ApiMethod["DownloadPost"] = "downloadPost";
 	  })(ApiMethod = exports.ApiMethod || (exports.ApiMethod = {}));
 
+	  var headerAuthorization = 'Authorization';
+
 	  var Request =
 	  /** @class */
 	  function () {
-	    function Request(endpoint) {
+	    function Request(endpoint, config) {
+	      var _this = this;
+
 	      this._endPoint = endpoint;
+
+	      if (!config) {
+	        throw new Error('config must be passed in at request init');
+	      }
+
+	      if (config.credential) {
+	        this._authorization = config.credential;
+	      } else {
+	        this._authorization = Request.generateAuthorization(config.accessKeyId, config.accessKeySecret);
+	      } // 请求拦截器
+
+
+	      axios_1["default"].interceptors.request.use(function (configAxios) {
+	        if (configAxios.headers) {
+	          // eslint-disable-next-line no-param-reassign
+	          configAxios.headers[headerAuthorization] = _this._authorization;
+	        }
+
+	        return configAxios;
+	      });
 	    }
 
 	    Object.defineProperty(Request.prototype, "endPoint", {
@@ -16954,6 +16978,11 @@
 	      enumerable: false,
 	      configurable: true
 	    });
+
+	    Request.generateAuthorization = function (accessKeyId, accessKeySecret) {
+	      // TODO: 根据accessKeyId和accessKeySecret生成authorization
+	      return "app:".concat(accessKeyId);
+	    };
 
 	    Request.prototype.send = function (apiurl, method, params, config) {
 	      return __awaiter(this, void 0, void 0, function () {
@@ -17197,8 +17226,46 @@
 	var ApiUrl;
 
 	(function (ApiUrl) {
-	  ApiUrl["GenerateRandom"] = "/ciphercompute-service/api/generate-random";
+	  ApiUrl["GenerateRandom"] = "/ciphercompute-service/api/generate-random"; // sm4加密
+
+	  ApiUrl["Sm4Encrypt"] = "/ciphercompute-service/api/symmetric-encrypt/sm4"; // sm4解密
+
+	  ApiUrl["Sm4Decrypt"] = "/ciphercompute-service/api/symmetric-decrypt/sm4"; // 生产SM4 MAC值
+
+	  ApiUrl["Sm4Mac"] = "/ciphercompute-service/api/generate-mac/sm4"; // sm2私钥签名
+
+	  ApiUrl["Sm2Sign"] = "/ciphercompute-service//api/asymmetric-prikey-sign/sm2"; // sm2公钥验签
+
+	  ApiUrl["Sm2Verify"] = "/ciphercompute-service/api/asymmetric-pubkey-verify/sm2"; // sm2非对称公钥加密
+
+	  ApiUrl["Sm2Encrypt"] = "/ciphercompute-service/api/asymmetric-encrypt/sm2"; // sm2非对称私钥解密
+
+	  ApiUrl["Sm2Decrypt"] = "/ciphercompute-service/api/asymmetric-decrypt/sm2"; // 申请密钥
+
+	  ApiUrl["GenerateKey"] = "/key-service/api/keys/spare/key/application"; // 撤销密钥
+
+	  ApiUrl["RevokeKey"] = "/key-service/api/keys/inuse/:id"; // 恢复历史库密钥
+
+	  ApiUrl["RestoreKey"] = "/key-service/api/keys/history/recover/:id"; // 归档密钥
+
+	  ApiUrl["ArchiveKey"] = "/key-service/api/keys/history/:id"; // 恢复归档库密钥
+
+	  ApiUrl["RestoreArchiveKey"] = "/key-service/api/keys/file/:recoverType/:id";
 	})(ApiUrl || (ApiUrl = {}));
+
+	var KeyParamsType;
+
+	(function (KeyParamsType) {
+	  KeyParamsType["SYMMETRIC"] = "0";
+	  KeyParamsType["ASYMMETRIC"] = "1";
+	})(KeyParamsType || (KeyParamsType = {}));
+
+	var RecoverType;
+
+	(function (RecoverType) {
+	  RecoverType["Manual"] = "recover";
+	  RecoverType["Court"] = "judicial-recover";
+	})(RecoverType || (RecoverType = {}));
 
 	var KmsClient =
 	/** @class */
@@ -17218,7 +17285,7 @@
 
 	    this._apiVersion = version || '1.0.0';
 	    this._endpoint = endpoint;
-	    this._request = new request_1.Request(this._endpoint);
+	    this._request = new request_1.Request(this._endpoint, config);
 
 	    if (config.credential) {
 	      this._credential = config.credential;
@@ -17264,12 +17331,215 @@
 	  }; // 公共方法：生成随机数
 
 
-	  KmsClient.prototype.generateRandom = function () {
+	  KmsClient.prototype.generateRandom = function (length, appId) {
 	    return __awaiter(this, void 0, void 0, function () {
 	      return __generator(this, function (_a) {
 	        return [2
 	        /*return*/
-	        , this._request.send(ApiUrl.GenerateRandom, request_1.ApiMethod.Post, this._addVersion({}))];
+	        , this._request.send(ApiUrl.GenerateRandom, request_1.ApiMethod.Post, this._addVersion({
+	          keyLen: length,
+	          appId: appId
+	        }))];
+	      });
+	    });
+	  }; // SM4对称加密
+
+
+	  KmsClient.prototype.sm4Encrypt = function (keyId, appId, plaintext) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm4Encrypt, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          plaintext: plaintext
+	        }))];
+	      });
+	    });
+	  }; // SM4对称解密
+
+
+	  KmsClient.prototype.sm4Decrypt = function (keyId, appId, ciphertext) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm4Decrypt, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          ciphertext: ciphertext
+	        }))];
+	      });
+	    });
+	  }; // SM4生成MAC值
+
+
+	  KmsClient.prototype.sm4Mac = function (keyId, appId, plaintext) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm4Mac, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          plaintext: plaintext
+	        }))];
+	      });
+	    });
+	  }; // SM2私钥签名
+
+
+	  KmsClient.prototype.sm2Sign = function (keyId, appId, plaintext) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm2Sign, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          plaintext: plaintext
+	        }))];
+	      });
+	    });
+	  }; // SM2公钥验签
+
+
+	  KmsClient.prototype.sm2Verify = function (keyId, appId, plaintext, signature) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm2Verify, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          plaintext: plaintext,
+	          signature: signature
+	        }))];
+	      });
+	    });
+	  }; // SM2非对称公钥加密
+
+
+	  KmsClient.prototype.sm2Encrypt = function (keyId, appId, plaintext) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm2Encrypt, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          plaintext: plaintext
+	        }))];
+	      });
+	    });
+	  }; // SM2非对称私钥解密
+
+
+	  KmsClient.prototype.sm2Decrypt = function (keyId, appId, ciphertext) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.Sm2Decrypt, request_1.ApiMethod.Post, this._addVersion({
+	          keyId: keyId,
+	          appId: appId,
+	          ciphertext: ciphertext
+	        }))];
+	      });
+	    });
+	  }; // 申请对称主密钥
+
+
+	  KmsClient.prototype.generateSymmetricKey = function (keyLen, appId, keyType, validTime) {
+	    if (keyType === void 0) {
+	      keyType = 'SM4';
+	    }
+
+	    if (validTime === void 0) {
+	      validTime = 6;
+	    }
+
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.GenerateKey, request_1.ApiMethod.Get, this._addVersion({
+	          keyType: keyType,
+	          keyLen: keyLen,
+	          appId: appId,
+	          monthNumber: validTime,
+	          type: KeyParamsType.SYMMETRIC
+	        }))];
+	      });
+	    });
+	  }; // 申请非对称密钥
+
+
+	  KmsClient.prototype.generateAsymmetricKey = function (keyLen, appId, keyType, validTime) {
+	    if (keyType === void 0) {
+	      keyType = 'SM2';
+	    }
+
+	    if (validTime === void 0) {
+	      validTime = 6;
+	    }
+
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.GenerateKey, request_1.ApiMethod.Post, this._addVersion({
+	          keyType: keyType,
+	          keyLen: keyLen,
+	          appId: appId,
+	          monthNumber: validTime,
+	          type: KeyParamsType.ASYMMETRIC
+	        }))];
+	      });
+	    });
+	  }; // 撤销密钥
+
+
+	  KmsClient.prototype.revokeKey = function (keyId) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.RevokeKey.replace(':id', keyId), request_1.ApiMethod.Delete, this._addVersion({}))];
+	      });
+	    });
+	  }; // 恢复历史库密钥
+
+
+	  KmsClient.prototype.restoreKey = function (keyId) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.RestoreKey.replace(':id', keyId), request_1.ApiMethod.Put, this._addVersion({}))];
+	      });
+	    });
+	  }; // 归档密钥
+
+
+	  KmsClient.prototype.archiveKey = function (keyId) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.ArchiveKey.replace(':id', keyId), request_1.ApiMethod.Delete, this._addVersion({}))];
+	      });
+	    });
+	  }; // 恢复归档库密钥
+
+
+	  KmsClient.prototype.restoreArchiveKey = function (keyId) {
+	    return __awaiter(this, void 0, void 0, function () {
+	      return __generator(this, function (_a) {
+	        return [2
+	        /*return*/
+	        , this._request.send(ApiUrl.RestoreArchiveKey.replace(':recoverType', RecoverType.Manual).replace(':id', keyId), request_1.ApiMethod.Put, this._addVersion({}))];
 	      });
 	    });
 	  };

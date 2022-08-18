@@ -19,15 +19,49 @@ interface Params {
   [key: string]: any
 }
 
+interface InitConfig {
+  accessKeyId: string;
+  accessKeySecret: string;
+  credential?: string;
+}
+
+const headerAuthorization = 'Authorization';
+
 export class Request {
   private _endPoint: string;
 
-  constructor(endpoint: string) {
+  private _authorization: string;
+
+  constructor(endpoint: string, config: InitConfig) {
     this._endPoint = endpoint;
+    if (!config) {
+      throw new Error('config must be passed in at request init');
+    }
+    if (config.credential) {
+      this._authorization = config.credential;
+    } else {
+      this._authorization = Request.generateAuthorization(
+        config.accessKeyId,
+        config.accessKeySecret,
+      );
+    }
+    // 请求拦截器
+    axios.interceptors.request.use((configAxios) => {
+      if (configAxios.headers) {
+        // eslint-disable-next-line no-param-reassign
+        configAxios.headers[headerAuthorization] = this._authorization;
+      }
+      return configAxios;
+    });
   }
 
   get endPoint(): string {
     return this._endPoint;
+  }
+
+  static generateAuthorization(accessKeyId: string, accessKeySecret: string): string {
+    // TODO: 根据accessKeyId和accessKeySecret生成authorization
+    return `app:${accessKeyId}`;
   }
 
   public async send(apiurl: string, method: ApiMethod, params: Params, config?: any) {
